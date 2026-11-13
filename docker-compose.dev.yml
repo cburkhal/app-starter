@@ -1,0 +1,12 @@
+# Local development: only Postgres. API and web run on the host with hot reload (pnpm dev).
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports: ["5432:5432"]
+    volumes: [dev-db:/var/lib/postgresql/data]
+volumes:
+  dev-db:

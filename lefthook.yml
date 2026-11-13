@@ -1,0 +1,9 @@
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,ts,tsx,json,css}"
+      run: npx biome check --write --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+    gitleaks:
+      run: command -v gitleaks >/dev/null && gitleaks protect --staged --redact || echo "gitleaks not installed, skipping (brew install gitleaks)"

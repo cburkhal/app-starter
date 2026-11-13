@@ -1,0 +1,16 @@
+{
+  "name": "@app/contract",
+  "private": true,
+  "type": "module",
+  "description": "The API contract (OpenAPI). Source of truth between web and any backend implementation.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./openapi.json": "./openapi.json"
+  },
+  "scripts": {
+    "generate": "openapi-typescript openapi.json -o src/schema.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.13.0"
+  }
+}

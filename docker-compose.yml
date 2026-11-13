@@ -1,0 +1,45 @@
+# Production stack, sized for a Raspberry Pi 4. One Postgres per app.
+#   cp .env.example .env   # fill in secrets
+#   docker compose pull && docker compose up -d
+# Build locally instead of pulling:  docker compose up -d --build
+name: ${APP_NAME:-app}
+
+services:
+  web:
+    image: ${IMAGE_PREFIX:-ghcr.io/cburkhal/app-starter}-web:${TAG:-latest}
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    restart: unless-stopped
+    ports: ["${HTTP_PORT:-80}:80", "${HTTPS_PORT:-443}:443"]
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes: [caddy-data:/data]
+    depends_on: [api]
+
+  api:
+    image: ${IMAGE_PREFIX:-ghcr.io/cburkhal/app-starter}-api:${TAG:-latest}
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://app:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/app
+    depends_on:
+      db: { condition: service_healthy }
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    # Small footprint for a Pi 4; raise for bigger hosts.
+    command: postgres -c shared_buffers=64MB -c max_connections=20 -c work_mem=4MB
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: app
+    volumes: [db-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  db-data:
+  caddy-data:
