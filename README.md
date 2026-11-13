@@ -54,7 +54,7 @@ docker compose pull && docker compose up -d
 
 ## Deploy on Kubernetes (desktop / heavier workloads)
 
-Same images (amd64), managed with Kustomize: `deploy/kustomization.yaml` is the base (Postgres StatefulSet, API, web, Ingress, nightly backup CronJob into a PVC), `deploy/overlays/example` shows a per-environment overlay.
+Same images (amd64), managed with Kustomize: `deploy/base` is the base (Postgres StatefulSet, API, web, Ingress, nightly backup CronJob into a PVC), `deploy/overlays/example` shows a per-environment overlay.
 
 ```bash
 cp -r deploy/overlays/example deploy/overlays/desktop

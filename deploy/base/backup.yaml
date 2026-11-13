@@ -1,4 +1,4 @@
-# Nightly pg_dump into a PVC, same script as docker compose (deploy/backup.sh).
+# Nightly pg_dump into a PVC, same script as docker compose (deploy/base/backup.sh).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

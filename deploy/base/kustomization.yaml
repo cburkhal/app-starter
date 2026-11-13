@@ -1,15 +1,15 @@
-# Kubernetes base (Kustomize). Lives here so it can share backup.sh with docker compose.
+# Kubernetes base (Kustomize). backup.sh is shared with docker compose.
 # Don't apply this directly: use an overlay, e.g. deploy/overlays/example.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 labels:
   - pairs: { app.kubernetes.io/part-of: app }
 resources:
-  - k8s/db.yaml
-  - k8s/api.yaml
-  - k8s/web.yaml
-  - k8s/backup.yaml
-  - k8s/ingress.yaml
+  - db.yaml
+  - api.yaml
+  - web.yaml
+  - backup.yaml
+  - ingress.yaml
 configMapGenerator:
   - name: backup-script
     files: [backup.sh]

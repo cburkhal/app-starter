@@ -6,7 +6,7 @@ kind: Kustomization
 namespace: app
 resources:
   - namespace.yaml
-  - ../..
+  - ../../base
 secretGenerator:
   - name: app-env
     envs: [secret.env]
