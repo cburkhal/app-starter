@@ -1,0 +1,46 @@
+# One Postgres per app (StatefulSet + PVC). Needs a default StorageClass.
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  clusterIP: None
+  selector: { app.kubernetes.io/name: db }
+  ports: [{ name: postgres, port: 5432 }]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db
+spec:
+  serviceName: db
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: db }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: db }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          args: ["-c", "shared_buffers=128MB", "-c", "max_connections=50"]
+          env:
+            - { name: POSTGRES_USER, value: app }
+            - { name: POSTGRES_DB, value: app }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: app-env, key: POSTGRES_PASSWORD } }
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+          ports: [{ name: postgres, containerPort: 5432 }]
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "app"] }
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 1Gi }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: 5Gi } }

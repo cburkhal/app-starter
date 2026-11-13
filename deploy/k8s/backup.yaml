@@ -1,0 +1,44 @@
+# Nightly pg_dump into a PVC, same script as docker compose (deploy/backup.sh).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backups
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 5Gi } }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup
+spec:
+  schedule: "15 3 * * *"
+  timeZone: Europe/Zurich
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:17-alpine
+              command: ["sh", "/scripts/backup.sh"]
+              env:
+                - { name: PGHOST, value: db }
+                - { name: PGUSER, value: app }
+                - { name: PGDATABASE, value: app }
+                - name: PGPASSWORD
+                  valueFrom: { secretKeyRef: { name: app-env, key: POSTGRES_PASSWORD } }
+                - { name: BACKUP_KEEP_DAYS, value: "7" }
+              volumeMounts:
+                - { name: scripts, mountPath: /scripts }
+                - { name: backups, mountPath: /backups }
+          volumes:
+            - name: scripts
+              configMap: { name: backup-script }
+            - name: backups
+              persistentVolumeClaim: { claimName: backups }

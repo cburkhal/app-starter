@@ -14,6 +14,7 @@ Starter for prototypes. TypeScript monorepo: Vite SPA + Hono API + Postgres, dep
 - `apps/api` Hono + `@hono/zod-openapi`, Drizzle, Better Auth. Tests use in-memory PGlite (`test/setup.ts`).
 - `apps/web` Vite + React 19, React Router, TanStack Query, shadcn/ui (Tailwind v4), Recharts.
 - `packages/contract` `openapi.json` + generated `schema.d.ts`. Generated, never edit by hand.
+- `deploy/` Caddyfile, backup script, Kustomize base (`kustomization.yaml`, `k8s/`) and overlays. New env vars: add to `.env.example` and `deploy/overlays/example/secret.env.example`.
 - `apps/*/src/**/notes*` is the **example feature**. Copy its pattern, delete it in real apps.
 
 ## Architecture rules (do not break)

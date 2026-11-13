@@ -43,6 +43,18 @@ jobs:
       - if: failure()
         run: cat /tmp/api.log /tmp/web.log
 
+  k8s:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: helm/kind-action@v1
+      - name: Validate manifests against a real API server
+        run: |
+          cp deploy/overlays/example/secret.env.example deploy/overlays/example/secret.env
+          kubectl kustomize deploy/overlays/example > /tmp/manifests.yaml
+          kubectl create namespace app
+          kubectl apply --dry-run=server -f /tmp/manifests.yaml
+
   secrets:
     runs-on: ubuntu-latest
     steps:

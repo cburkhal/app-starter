@@ -1,0 +1,41 @@
+# Caddy serving the SPA and proxying /api to the api Service (same as in docker compose).
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector: { app.kubernetes.io/name: web }
+  ports: [{ name: http, port: 80, targetPort: http }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: web }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: web }
+    spec:
+      containers:
+        - name: web
+          image: app-web
+          env:
+            # TLS is terminated by the Ingress, so Caddy only speaks plain HTTP.
+            - { name: SITE_ADDRESS, value: ":80" }
+          ports: [{ name: http, containerPort: 80 }]
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }
+            limits: { memory: 128Mi }
+          securityContext: { allowPrivilegeEscalation: false }
+          volumeMounts:
+            - { name: caddy-data, mountPath: /data }
+            - { name: caddy-config, mountPath: /config }
+      volumes:
+        - { name: caddy-data, emptyDir: {} }
+        - { name: caddy-config, emptyDir: {} }

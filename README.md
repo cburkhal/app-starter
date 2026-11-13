@@ -49,9 +49,22 @@ docker compose pull && docker compose up -d
 - Each app has its own Postgres. For several apps on one Pi, give each a different `APP_NAME` and `HTTP_PORT`, or put one shared reverse proxy in front.
 - GHCR packages are private by default: either make them public in the package settings, or `docker login ghcr.io` on the Pi.
 - Footprint: roughly 150-250 MB RAM for Caddy + API + Postgres when idle.
-- **Backups are your job:** e.g. a nightly `docker compose exec db pg_dump -U app app > backup.sql` via cron.
+- **Backups:** the `backup` service dumps the database nightly to `./backups` (`BACKUP_CRON`, keeps `BACKUP_KEEP_DAYS`, default 7). That's still on the Pi's disk: copy the folder somewhere else (NAS, rsync, restic). Manual dump: `docker compose exec backup backup.sh`.
+- **Restore:** `gunzip -c backups/<file>.sql.gz | docker compose exec -T db psql -U app app`
 
-Heavier workloads: the same images run on amd64 (desktop / Kubernetes).
+## Deploy on Kubernetes (desktop / heavier workloads)
+
+Same images (amd64), managed with Kustomize: `deploy/kustomization.yaml` is the base (Postgres StatefulSet, API, web, Ingress, nightly backup CronJob into a PVC), `deploy/overlays/example` shows a per-environment overlay.
+
+```bash
+cp -r deploy/overlays/example deploy/overlays/desktop
+cd deploy/overlays/desktop
+cp secret.env.example secret.env     # APP_URL, BETTER_AUTH_SECRET, POSTGRES_PASSWORD (hex)
+# edit kustomization.yaml: namespace, image names/tags, ingress host
+kubectl apply -k .
+```
+
+Needs a default StorageClass and an Ingress controller. Add TLS (e.g. cert-manager) in your overlay. CI validates the example overlay against a real API server (kind).
 
 ## Auth
 

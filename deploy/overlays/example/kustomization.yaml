@@ -1,0 +1,25 @@
+# Copy this folder per environment (e.g. overlays/desktop) and adjust.
+#   cp secret.env.example secret.env   # fill in, never commit
+#   kubectl apply -k deploy/overlays/example
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: app
+resources:
+  - namespace.yaml
+  - ../..
+secretGenerator:
+  - name: app-env
+    envs: [secret.env]
+images:
+  - name: app-api
+    newName: ghcr.io/cburkhal/app-starter-api
+    newTag: latest
+  - name: app-web
+    newName: ghcr.io/cburkhal/app-starter-web
+    newTag: latest
+patches:
+  - target: { kind: Ingress, name: web }
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: app.example.local
