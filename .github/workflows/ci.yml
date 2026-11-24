@@ -1,7 +1,11 @@
 name: CI
 on:
-  push: { branches: [main] }
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**", "LICENSE"]
   pull_request:
+    paths-ignore: ["**.md", "docs/**", "LICENSE"]
+  workflow_dispatch:
 
 jobs:
   check:
