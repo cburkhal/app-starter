@@ -3,7 +3,7 @@ name: Images
 on:
   push:
     branches: [main]
-    tags: ["v*"]   # path filters are not evaluated for tag pushes, so releases always build
+    tags: ["v*"] # path filters are not evaluated for tag pushes, so releases always build
     paths:
       - "apps/**"
       - "packages/**"
